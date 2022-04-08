@@ -32,7 +32,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [ ] [`sbm.ipynb`](./notebooks/sbm.ipynb): Illustration of persistence diagrams for community detection in stochastic blockmodels.
 
 
-- [ ] [`simulation.ipynb`](./notebooks/simulation.ipynb): Simulations comparing convergence in bottleneck distance for $`\epsilon`$ known vs. $`\epsilon`$ unknown. 
+- [ ] [`simulation.ipynb`](./notebooks/simulation.ipynb): Simulations comparing convergence in bottleneck distance for $`\epsilon`$ known vs. $\epsilon$ unknown. 
 
 
 - [ ] [`comparison.ipynb`](./notebooks/comparison.ipynb): Simulations comparing edgeFlip with LaplaceFlip. 
