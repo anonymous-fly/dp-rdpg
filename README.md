@@ -7,7 +7,7 @@ Topological inference from differentially private random dot-product graphs.
 To get started, first clone the repository and start Julia.
 
 ```bash
-$ git clone https://gitlab.com/anonymous-fly/dp-rdpg.git
+$ git clone https://github.com/anonymous-fly/dp-rdpg.git
 $ cd ./dp-rdpg
 $ julia
 ```
@@ -29,7 +29,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [ ] [`clustering.ipynb`](./notebooks/clustering.ipynb): Topology-aware spectral clustering with more details. 
 
 
-- [ ] [`sbm.ipynb`](./notebooks/sbm.ipynb): Illustration of persistence diagrams for community detection in stochastic blockmodels.
+- [ ] [`sbm.ipynb`](./notebooks/sbm.ipynb): Illustration of persistence diagrams for community detection in stochastic blockmodels, including the relationship between <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> and <img src="https://render.githubusercontent.com/render/math?math=n"> vis-à-vis [Seif, et. al (2022)].(https://arxiv.org/abs/2202.00636).
 
 
 - [ ] [`simulation.ipynb`](./notebooks/simulation.ipynb): Simulations comparing convergence in bottleneck distance for <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> known vs. <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> unknown. 
@@ -46,4 +46,4 @@ The [code](./code/) directory contains the `.jl` source-code for the analyses.
 
 ## Troubleshooting
 
-If you want to view the Jupyter notebooks in the browser itself, please make sure you select the option to *"display rendered file"* to render the file in the browser, and click on *"load it anyway"* to display the file (most files are larger than the default 1.00MiB limit on Gitlab).
+For any issues, please click [here](https://github.com/anonymous-fly/dp-rdpg/issues/new/choose).

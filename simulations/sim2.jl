@@ -1,9 +1,9 @@
 ENV["GKSwstype"]="100"
 
-import Pkg; Pkg.activate(pwd() * "."); Pkg.instantiate();
+import Pkg; Pkg.activate(pwd()); Pkg.instantiate();
 
 using Ripserer, PersistenceDiagrams, Plots, ProgressBars, LaTeXStrings
-include("./networks.jl")
+include("../code/networks.jl")
 
 function generate_sbm(n, k, p, r)
     f = (x, y) -> r + p * (x == y)
@@ -34,7 +34,8 @@ function simulate_one(A, d, epsilon, method)
     # Note: we add one to d, so don't add one yourself!
     X, _, _ = spectral_embeddings(A, d = d+1, scale = false)
     
-    A_private = edge_flip(A, ϵ = epsilon)
+    # A_private = edge_flip(A, ϵ = epsilon)
+    A_private = edgeFlip(A, ϵ = epsilon)
     
     if method == :eps
         A_private = A_private .- privacy(ϵ = epsilon)
@@ -85,7 +86,7 @@ for i in tqdm(1:n)
     for k in 1:repeats
         
         A = generate_sbm(N[i], clust, p, r)
-       
+
         for method in [:eps, :noeps]
             
             # ϵ = log(1 + ((log(N[i]))/N[i])^(1/72))
@@ -112,4 +113,6 @@ title!(L"\epsilon_n = \log \ \left( 1 + (\sqrt{\log \ n} / n)\right)")
 xlabel!("n")
 ylabel!("Bottleneck distance")
 
+savefig(plt, "./plots/convergence.svg")
 savefig(plt, "./plots/convergence.pdf")
+
