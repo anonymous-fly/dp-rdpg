@@ -29,7 +29,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [ ] [`clustering.ipynb`](./notebooks/clustering.ipynb): Topology-aware spectral clustering with more details. 
 
 
-- [ ] [`sbm.ipynb`](./notebooks/sbm.ipynb): Illustration of persistence diagrams for community detection in stochastic blockmodels, including the relationship between <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> and <img src="https://render.githubusercontent.com/render/math?math=n"> vis-à-vis ![Seif, et. al (2022)].(https://arxiv.org/abs/2202.00636).
+- [ ] [`sbm.ipynb`](./notebooks/sbm.ipynb): Illustration of persistence diagrams for community detection in stochastic blockmodels, including the relationship between <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> and <img src="https://render.githubusercontent.com/render/math?math=n"> vis-à-vis [Seif, et. al, (2022)](https://arxiv.org/abs/2202.00636).
 
 
 - [ ] [`simulation.ipynb`](./notebooks/simulation.ipynb): Simulations comparing convergence in bottleneck distance for <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> known vs. <img src="https://render.githubusercontent.com/render/math?math=\epsilon"> unknown. 
