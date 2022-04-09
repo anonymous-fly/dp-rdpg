@@ -1,6 +1,6 @@
 ENV["GKSwstype"]="100"
 
-import Pkg; Pkg.activate(pwd() * "/../../"); Pkg.instantiate();
+import Pkg; Pkg.activate(pwd() * "."); Pkg.instantiate();
 
 using Ripserer, PersistenceDiagrams, Plots, ProgressBars, LaTeXStrings
 include("./networks.jl")
@@ -73,8 +73,8 @@ end
 
 p, r = 0.4, 0.1, 0.15
 clust = 3
-repeats = 20
-N = [50, 100, 200, 400, 600, 800, 1000]
+repeats = 7
+N = [50, 100, 200, 400, 600]
 
 n = length(N)
 
@@ -88,7 +88,8 @@ for i in tqdm(1:n)
        
         for method in [:eps, :noeps]
             
-            ϵ = log(1 + ((log(N[i]))/N[i])^(1/72))
+            # ϵ = log(1 + ((log(N[i]))/N[i])^(1/72))
+            ϵ = log(N[i]) ^ (2/3)
             
             results = simulate_one(A, 2, ϵ, method)
             println("n=$(N[i]), k=$k, ϵ = $ϵ, method=$method, result=$(results[1])")
