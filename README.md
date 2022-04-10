@@ -46,4 +46,8 @@ The [code](./code/) directory contains the `.jl` source-code for the analyses.
 
 ## Troubleshooting
 
-For any issues, please click [here](https://github.com/anonymous-fly/dp-rdpg/issues/new/choose).
+The code here uses the [Ripserer.jl](https://github.com/mtsch/Ripserer.jl) backend for computing persistent homology. The exact computation of persistent homology is achieved using the **Alpha** complex which, additionally, uses the ![MiniQHull.jl](https://github.com/gridap/MiniQhull.jl) library, which has a known incompatibility with the Windows operating system (![see here](https://github.com/gridap/MiniQhull.jl/issues/5)). If you're using Windows, then you can either:
+1. Use the windows subsystem for linux to run the code here, or
+2. You can change the relevant parts of the code to not use the Alpha complex, e.g., `Alpha(Xn)` => `Xn`. 
+
+For any other issues, please click [here](https://github.com/anonymous-fly/dp-rdpg/issues/new/choose).

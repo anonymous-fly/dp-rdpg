@@ -120,9 +120,9 @@ end
 
 
 plt = plot(title="ϵ=logᵏ(n)")
-plot!(plt, N, mean(we1, dims=1)', ribbon=std(we1, dims=1), label="k=0.33", linewidth=2, fillapha=0.01)#, markershape=:o)
-plot!(plt, N, mean(we2, dims=1)', ribbon=std(we2, dims=1), label="k=0.66", linewidth=2, fillapha=0.01)#, markershape=:o)
-plot!(plt, N, mean(we3, dims=1)', ribbon=std(we3, dims=1), label="k=1.00", linewidth=2, fillapha=0.01)#, markershape=:o)
+plot!(plt, N, mean(we1, dims=1)', label="k=0.33", linewidth=2, fillapha=0.01, markershape=:o)
+plot!(plt, N, mean(we2, dims=1)', label="k=0.66", linewidth=2, fillapha=0.01, markershape=:o)
+plot!(plt, N, mean(we3, dims=1)', label="k=1.00", linewidth=2, fillapha=0.01, markershape=:o)
 xlabel!("n")
 ylabel!("Bottleneck distance")
 
