@@ -3,9 +3,9 @@ using DrWatson
 
 include(srcdir("rdpg.jl"))
 import Main.rdpg
-using StatsBase, Pipe, Graphs, GraphIO, LightGraphs
-using Plots, TSne, Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
-using FreqTables
+using StatsBase, Pipe, Graphs, GraphIO, LightGraphs, DelimitedFiles
+using Plots, Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
+
 
 
 begin
@@ -52,7 +52,7 @@ end
 
 
 begin
-    dim = 10
+    dim = 20
     n = 1000
     ϵ = 5.0 * log(n)
     subsample = false
@@ -64,6 +64,7 @@ end
 begin
     G = Graphs.loadgraph(path_to_graph, "graph_key", EdgeListFormat())
     A = Graphs.LinAlg.adjacency_matrix(G) |> LightGraphs.LinAlg.symmetrize
+    labels = convert.(Int, readdlm(path_to_labels))[:, 2]
 
     if (subsample)
         N = size(A, 1)
@@ -75,13 +76,13 @@ end
 
 begin
     Xnh, _ = rdpg.spectralEmbed(A, d=dim, scale=false)
-    plt1 = @pipe Xnh[:, 2:4] |> rdpg._Matrix_to_ArrayOfTuples |> scatter(_, markersize=3, groups=labels, legend=nothing)
+    plt1 = @pipe Xnh[:, 1:3] |> rdpg._Matrix_to_ArrayOfTuples |> scatter(_, markersize=3, groups=labels, legend=nothing)
 end
 
 begin
     Dx = @pipe Xnh |>
                rdpg._Matrix_to_ArrayOfTuples |>
-               ripserer(Alpha(_), dim_max=1)
+               ripserer(_, dim_max=0)
     plot(Dx)
 end
 
@@ -103,7 +104,6 @@ end
 
 begin
     k = 3
-    labels = convert.(Int, readdlm(path_to_labels))[:, 2]
     freqs = @pipe labels |> countmap |> collect |> sort(_, by=x -> x[2], rev=:true)
     labs = [x[1] for x in freqs[1:k]]
     filtered_labels = filter(x -> x in labs, labels)
@@ -119,7 +119,7 @@ end
 begin
     Dx = @pipe Xnh |>
                rdpg._Matrix_to_ArrayOfTuples |>
-               ripserer(_, dim_max=1, reps=true)
+               ripserer(_, dim_max=1, reps=true, alg=:involuted)
     plot(Dx)
 end
 
