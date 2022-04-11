@@ -41,7 +41,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [ ] [`real-world.ipynb`](./notebooks/real-world.ipynb): Illustration of the benefit of the topological perspective on real-world data. 
 
 
-The [code](./code/) directory contains the `.jl` source-code for the analyses.
+The [code](./code/) directory contains the `.jl` source-code for the analyses. All functions prefixed with `rdpg.` are defined in the [src](./src/) directory, and is imported through the [`rdpg` module](./src/rdpg.jl).
 
 
 ## Troubleshooting
