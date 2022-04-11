@@ -47,4 +47,7 @@ for k in 1:length(Ks)
         lw=3, fillapha=0.01,
     )
 end
-plt_dense
+
+
+savefig(plt_dense, plotsdir("temp/plot_dense.svg"))
+savefig(plt_sparse, plotsdir("temp/plot_sparse.svg"))

@@ -49,6 +49,28 @@ begin
     end
 end
 
+begin
+    function diagram(X;)
+        points = tuple.(eachcol(X)...)
+        dgm = ripserer(points, dim_max=0)
+        return dgm
+    end
+
+    function bottleneck_distances(X, Y, dim_max)
+        DX = diagram(X, dim_max)
+        DY = diagram(Y, dim_max)
+        return [Bottleneck()(DX[1], DY[1])]
+    end
+
+    function simulate_one(A, d, epsilon)
+        X, _, _ = rdpg.spectralEmbed(A, d=d + 1, scale=false)
+        A_private = rdpg.edgeFlip(A, ϵ=epsilon) .- rdpg.privacy(ϵ=epsilon)
+        X_private, _, _ = rdpg.spectralEmbed(A_private, d=d + 1, scale=false)
+        X_private = X_private ./ (1 - 2 * rdpg.privacy(ϵ=epsilon))
+        return bottleneck_distances(X, X_private, d)
+    end
+end
+
 
 
 begin
@@ -103,7 +125,7 @@ end
 
 
 begin
-    k = 3
+    k = 20
     freqs = @pipe labels |> countmap |> collect |> sort(_, by=x -> x[2], rev=:true)
     labs = [x[1] for x in freqs[1:k]]
     filtered_labels = filter(x -> x in labs, labels)
@@ -126,13 +148,10 @@ end
 
 
 begin
-    q = 3
+    q = 4
     order = 1 # order = dim + 1
     u1 = Ripserer.persistence.(Dx[order][1:end-1])
-    v1 = [0, u1[1:end-1]...]
-    # w1 = u1 - v1
-    w1 = u1
-    index1 = findall(x -> x > q, stdscore(w1))
+    index1 = findall(x -> x > q, stdscore(u1))
     println(index1)
     plot(
         plot(Dx), Dx[order][index1], lim=(-0.1, Inf),
@@ -140,19 +159,9 @@ begin
     ) |> display
 end
 
-begin
-    topological_clusters = repeat([0], size(Xnh, 1))
-
-    idx = filterDgm(Dx, order=1, ς=3)
-
-    for k in 1:length(idx)
-        topological_clusters[idx[k]] .= k
-    end
-
-    randindex(topological_clusters, filtered_labels)
-end
 
 #
+
 
 begin
     B = (rdpg.edgeFlip(A, ϵ=ϵ) .- rdpg.τ(ϵ)) ./ rdpg.σ(ϵ)^2
@@ -170,33 +179,99 @@ end
 begin
     q = 2.9
     order = 1 # order = dim + 1
-    u1 = Ripserer.persistence.(Dy[order][1:end-1])
-    v1 = [0, u1[1:end-1]...]
-    # w1 = u1 - v1
-    w1 = u1
-    index1 = findall(x -> x > q, stdscore(w1))
-    println(index1)
+    u2 = Ripserer.persistence.(Dy[order][1:end-1])
+    index2 = findall(x -> x > q, stdscore(u2))
+    println(index2)
     plot(
-        plot(Dx), Dx[order][index1], lim=(-0.1, Inf),
+        plot(Dy), Dy[order][index2], lim=(-0.1, Inf),
         markercolor="red", markeralpha=1, markershape=:x, markersize=7
     ) |> display
 end
 
 begin
-    private_topological_clusters = repeat([0], size(Ynh, 1))
-
-    idy = filterDgm(Dy, order=1, ς=1)
-
-    for k in 1:length(idy)
-        private_topological_clusters[idy[k]] .= k
+    
+    repeats = 5
+    Eps = [0.05, 0.1, 0.2, 0.5, 0.8, 1:3...]
+    m = length(Eps)
+    
+    results = zeros(repeats, m)
+    
+    prog = Progress(convert(Int, m * repeats))
+    
+    for i in 1:m
+        for j in 1:repeats
+            error = simulate_one(A, 10, Eps[i])
+            results[j, i] = error[1]
+            next!(prog)
+        end
     end
-
-    randindex(private_topological_clusters, filtered_labels)
+    
+    plt = plot(title="Email Eu Core Data", xlabel="ϵ", ylabel="Bottleneck Distance", ledend=:right)
+    plt = plot(plt, Eps,
+        mean(results, dims=1)',
+        ribbon=std(results, dims=1)',
+        marker=:o,
+        label=nothing
+    )
+    vline!([sqrt(log(n))], position=:bottomright, label="√log(n)", line=:dot, c=:firebrick1)
+    
+    # savefig(plot(plt, size=(400, 300)), plotsdir("eu/bottleneck.pdf"))
+    
 end
 
 
-Bottleneck()(Dx, Dy)
 
 
+function filt_dgm(D; k=1)
 
-one_sim = 
+    dt = D[1][end-k].death
+    xrips = Rips(Xnh |> rdpg.m2t)
+    edges_xrips = Ripserer.edges(xrips)
+    vertices_xrips = map(x -> x.birth < dt && Ripserer.vertices(x), edges_xrips)
+    vertices_xrips = filter(x -> x != false, vertices_xrips)
+
+    clusters = Any[]
+    for i in 1:length(vertices_xrips)
+        if length(clusters) == 0
+            push!(clusters, [vertices_xrips[i]...])
+        else
+            index = -1
+            for j in 1:length(clusters)
+                if (vertices_xrips[i][1] in clusters[j]) || (vertices_xrips[i][2] in clusters[j])
+                    index = j
+                    break
+                end
+            end
+
+            if index > 0
+                push!(clusters[index], vertices_xrips[i]...)
+            else
+                push!(clusters, [vertices_xrips[i]...])
+            end
+        end
+    end
+
+    for i in 1:length(clusters)
+        clusters[i] = unique(clusters[i])
+    end
+
+    return clusters
+end
+
+begin
+    topological_clusters = repeat([0], size(Xnh, 1))
+    idx = filt_dgm(Dx, k=20)
+    for k in 1:length(idx)
+        topological_clusters[idx[k]] .= k
+    end
+    randindex(topological_clusters, filtered_labels)[2]
+end
+
+begin
+    private_topological_clusters = repeat([0], size(Ynh, 1))
+    idy = filt_dgm(Dy, k=20)
+    for k in 1:length(idx)
+        private_topological_clusters[idy[k]] .= k
+    end
+    randindex(private_topological_clusters, filtered_labels)[2]
+end
