@@ -38,7 +38,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [x] [`comparison.ipynb`](./notebooks/comparison.ipynb): Simulations comparing edgeFlip with LaplaceFlip. 
 
 
-- [ ] [`EuCore.ipynb`](./notebooks/eucore.ipynb): Illustration of the edgeFlip & persistent homology using the ![email-Eu-Core](http://www.cs.cmu.edu/~jure/pubs/powergrowth-tkdd.pdf) dataset, comprising of email communications between researchers from a large European research institution.
+- [x] [`EuCore.ipynb`](./notebooks/eucore.ipynb): Illustration of the edgeFlip & persistent homology using the ![email-Eu-Core](http://www.cs.cmu.edu/~jure/pubs/powergrowth-tkdd.pdf) dataset, comprising of email communications between researchers from a large European research institution.
 
 
 The [code](./code/) directory contains the `.jl` source-code for the analyses. All functions prefixed with `rdpg.` are defined in the [src](./src/) directory, and is imported through the [`rdpg` module](./src/rdpg.jl).
