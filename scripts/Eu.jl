@@ -2,7 +2,7 @@ using DrWatson
 @quickactivate projectdir()
 
 include(srcdir("rdpg.jl"))
-import Main.rdpg
+using Main.rdpg
 using StatsBase, Pipe, Graphs, GraphIO, LightGraphs, DelimitedFiles
 using Plots, Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
 
@@ -77,7 +77,7 @@ begin
     dim = 20
     n = 1000
     ϵ = 5.0 * log(n)
-    subsample = false
+    subsample = true
     path_to_graph = datadir("email-Eu-core.txt")
     path_to_labels = datadir("email-Eu-core-department-labels.txt")
 end
@@ -92,6 +92,7 @@ begin
         N = size(A, 1)
         idx = sample(1:N, n, replace=false)
         A = A[idx, idx]
+        labels = labels[idx]
     end
 end
 

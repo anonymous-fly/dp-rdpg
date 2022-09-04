@@ -1,0 +1,6 @@
+echo " "
+echo " "
+echo "Job started on `hostname` at `date`"
+
+cd $PBS_O_WORKDIR
+echo $(ls -la) >> test.log

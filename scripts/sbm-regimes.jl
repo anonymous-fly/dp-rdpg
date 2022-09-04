@@ -7,7 +7,7 @@ Random.seed!(2022)
 for i in 1:n
     for j in 1:repeats
         A_sparse = generate_sbm_sparse(N[i], 3, 9, 1)
-        A_dense = generate_sbm_dense(N[i], 3, 0.6, 0.05)
+        A_dense = generate_sbm_dense(N[i], 3, 0.7, 0.05)
         for k in 1:length(Ks)
 
             ϵn = 5 * log(N[i])^(Ks[k])
