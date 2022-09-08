@@ -1,6 +1,17 @@
 
-function spectralEmbed(A; d = 3, scale=true)
-    λ, v = eigs(A, nev = d, maxiter=1000)
+function spectralEmbed(A; d=3, scale=false, restarts=200)
+    λ, v = partialeigen(partialschur(A, nev=d, which=LM(), restarts=restarts)[1])
+    X = v * diagm(.√abs.(λ))
+
+    if scale
+        X = StatsBase.standardize(ZScoreTransform, X, dims=1)
+    end
+    return X, λ, v
+end
+
+
+function oldspectralEmbed(A; d = 3, scale=false)
+    λ, v = eigs(A, nev = d)
     X = v * diagm(.√ abs.(λ))
     
     if scale

@@ -2,6 +2,7 @@
 
 module rdpg
 
+using ArnoldiMethod
 using Arpack
 using Distances
 using Distributions
@@ -23,7 +24,6 @@ using SparseArrays
 using Statistics
 using StatsBase
 using LinearAlgebra
-using Pkg
 using Random
 using RCall
 
