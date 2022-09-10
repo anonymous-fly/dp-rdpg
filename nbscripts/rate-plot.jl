@@ -1,6 +1,4 @@
 using DrWatson
-@quickactivate projectdir()
-
 using Plots
 
 rho(n) = log(n) / n
@@ -17,7 +15,6 @@ g(c) = n -> (epsilon_transform(epsilon_rate2)(n) * rate_1(c)(n)) + rate_2(n)
 
 
 begin
-    
     theme(:default)
     C = [2]
     cls1 = [:firebrick1, :red]
@@ -30,9 +27,21 @@ begin
         end
         plt = plot(plt, n -> h(c)(n), 10, 1e10, lw=3, la=0.5, ls=lty[i], c=cls1[i], label="𝔤(ϵ, n), c=$c")
         plt = plot(plt, n -> g(c)(n), 10, 1e10, lw=3, la=0.5, ls=lty[i], c=cls2[i], label="𝔣(ϵ, n), c=$c")
-        
+
     end
     plt = plot(plt, legend=:topright)
-
 end
 # savefig(plot(plt, size=(600, 350)), plotsdir("rate.svg"))
+
+
+
+foo1(n) = log(log(n))
+goo1(n) = sqrt(log(n))
+goo2(n) = log(n) - log(log(n))
+foo3(n) = log(n)
+plot(foo1, 5, 100, label="log(log(n))", lw=3)
+plot!(goo1, 5, 100, label="√log(n)", lw=3)
+plot!(goo2, 5, 100, label="log(n) -  loglog(n)", lw=3)
+plot!(foo3, 5, 100, label="log(n)", lw=3, legend=:bottomright)
+title!("Consistency thresholds for gRDPGs")
+savefig(plotsdir("thresholds.pdf"))
