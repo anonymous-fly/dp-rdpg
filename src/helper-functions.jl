@@ -21,3 +21,7 @@ function V(V, fun = mean; slice = 1, i = 1)
         reshape(fun(V, dims = 1), size(V, 3), size(V, 2), :)[:, i]
     end
 end
+
+function subsample(X, a=1)
+    sample(X |> rdpg.m2t, round(Int, size(X, 1)^a), replace=false)
+end

@@ -1,144 +1,86 @@
 begin
     using DrWatson
     include(srcdir("rdpg.jl"))
-    import Main.rdpg
-    using LinearAlgebra, Plots, ProgressMeter, Random
+    using Main.rdpg
+    using LinearAlgebra, Plots, ProgressMeter, Random, Pipe
     using PersistenceDiagrams, Ripserer, Statistics, StatsBase
-end
-
-begin
-    function scale_embeddings(X)
-        return StatsBase.standardize(ZScoreTransform, X, dims=1)
-    end
-
-    function diagram(X; dim_max)
-        dgm = ripserer(X |> Alpha, dim_max=dim_max)
-        [replace(x -> death(x) == Inf ? PersistenceInterval(birth(x), threshold(d)) : x, d) for d in dgm]
-    end
-
-    function bottleneck_distance(Dx, Dy; order=nothing, p=Inf)
-        order = isnothing(order) ? 0 : order
-        dx, dy = Dx[1+order], Dy[1+order]
-        m = max(0, min(length.((dx, dy))...) .- 2)
-        dx = dx[end-m:end]
-        dy = dy[end-m:end]
-        return norm(map((x, y) -> (x .- y) .|> abs |> maximum, dx, dy), p)
-    end
-
-    # function bottleneck_distance(Dx, Dy; order=nothing, p=Inf)
-    #     Bottleneck()(Dx, Dy)
-    # end
-
-    function subsample(X, a=1)
-        sample(X |> rdpg.m2t, round(Int, size(X, 1)^a), replace=false)
-    end
 end
 
 
 begin
     function generate_sbm_sparse(n, k, p, r)
-        f = (x, y) -> (r + p * (x == y)) * log(n) / n
+        # f = (x, y) -> (r + p * (x == y)) * (log(n) / n^(0.1))
+        f = (x, y) -> (r + p * (x == y)) * (log(n) / n^(1/3))
+        # f = (x, y) -> (r + p * (x == y)) * log(n)^4 / n^(1/2)
         Z = rand(1:k, n)
         return rdpg.Adjacency(f, Z)
     end
 
-    function generate_sbm_dense(n, k, p, r)
-        f = (x, y) -> (r + p * (x == y))
-        Z = rand(1:k, n)
-        return rdpg.Adjacency(f, Z)
-    end
-
-    function simulate_one(n, ϵ, params, type=:dense)
-        if type == :dense
+    function generate_data(n, ϵ, params, method=:dense)
+        if method == :dense
             A = generate_sbm_dense(n, params.clust, params.p, params.r)
         else
             A = generate_sbm_sparse(n, params.clust, params.p, params.r)
         end
-        X, _, _ = rdpg.spectralEmbed(A, d=params.d)
-        Dx = diagram(X |> subsample, dim_max=params.order)
+
+        X, _, _ = rdpg.spectralEmbed(A, d=params.d, restarts=1000)
+        # Add small perturbation to avoid degenerate simplices in Alpha complex
+        X = X .+ randn(size(X)...) .* 1e-10
+        Dx = rdpg.diagram(X |> rdpg.subsample, dim_max=params.order)
 
         B = (rdpg.edgeFlip(A, ϵ=ϵ) .- rdpg.τ(ϵ)^2) ./ rdpg.σ(ϵ)^2
-        Y, _ = rdpg.spectralEmbed(B, d=params.d)
-        Dy = diagram(Y |> subsample, dim_max=params.order)
+        Y, _ = rdpg.spectralEmbed(B, d=params.d, restarts=1000)
 
-        # println((:bottleneck, bottleneck_distance(Dx, Dy, order=order, p=p))
+        # Add small perturbation to avoid degenerate simplices in Alpha complex
+        Y = Y .+ randn(size(Y)...) .* 1e-10
+        Dy = rdpg.diagram(Y |> rdpg.subsample, dim_max=params.order)
 
-        return bottleneck_distance(Dx, Dy, order=params.order, p=params.q)
-    end
-end
-
-
-
-Ks = [1 / 2, 2 / 3, 3 / 4]
-# N = [500:250:1000...; 2000:1000:5000]
-N = [250:250:1000...]
-
-params = (; p=0.5, r=0.1, clust=3, d=2, order=0, q=Inf)
-
-
-function simulation(Ks, N; params, repeats=5)
-
-    μ = zeros(length(Ks), length(N))
-    σ = zeros(length(Ks), length(N))
-
-    @showprogress for (i, k) in zip(eachindex(Ks), Ks)
-        μ[i, :], σ[i, :] = one_sim_k(k, N, params, repeats)
+        return rdpg.bottleneck_distance(Dx, Dy, order=params.order, p=params.q)
     end
 
-    return μ, σ
-end
 
-function one_sim_k(k, N, params, repeats=5, type=:dense)
-    n = length(N)
-    m = zeros(n)
-    s = zeros(n)
+    function one_sim(f, N, params, repeats=5, method=:dense)
+        n = length(N)
+        m = zeros(n)
+        s = zeros(n)
 
-    @showprogress for (i, n) in zip(eachindex(N), N)
-        ϵn = log(n)^k
-        Random.seed!(2022)
-        tmp = [simulate_one(n, ϵn, params, type)[1] for _ in 1:repeats]
-        m[i] = @pipe tmp |> mean(_)
-        s[i] = @pipe tmp |> std(0.25 .* _)
-    end
-    return m, s
-end
-
-a, b = simulation(Ks, N, params=params, repeats=10)
-plt = plot(0, 0)
-for (x, y) in zip(eachrow(a), eachrow(b))
-    plt = plot(plt, x, ribbon=0.5 .* y)
-end
-plt
-
-
-begin
-    repeats = 5
-    Ks = [1 / 2, 2 / 3, 3 / 4]
-    Ks_legend = ["0.50", "0.66", "0.75"]
-    N = [100, 200, 400, 600, 800, 1000, 2000, 5000]
-end
-
-begin
-    p, r = 0.5, 0.1
-    clust = 3
-    d = 2
-    n = length(N)
-end
-
-begin
-    results_dense = [zeros(repeats, n) for _ in 1:length(Ks)]
-
-    prog = Progress(convert(Int, n * repeats * length(Ks)))
-
-    for i in 1:n
-        for j in 1:repeats
-            for k in eachindex(Ks)
-                A = generate_sbm_dense(N[i], clust, p, r)
-                ϵn = log(N[i])^(Ks[k])
-                error = simulate_one(A, d, ϵn, 1, Inf)
-                results_dense[k][j, i] = error[1]
-                next!(prog)
-            end
+        @showprogress for (i, n) in zip(eachindex(N), N)
+            Random.seed!(2022)
+            tmp = [generate_data(n, f(n), params, method)[1] for _ in 1:repeats]
+            m[i] = @pipe tmp |> median(_)
+            s[i] = @pipe tmp |> std(0.25 .* _)
         end
+        return m, s
     end
+end
+
+eps = 1
+# f1 = (; f=n -> log(n), name="log(n)")
+# f2 = (; f=n -> log(n) / log(log(n)), name="log(n) / log(log(n))")
+# f3 = (; f=n -> log(log(n)), name="log(log(n))")
+# f4 = (; f=n -> log(log(n)), name="log(log(n))")
+f4 = (; f=n -> eps, name="constant")
+F = [f4]
+
+theme(:default)
+N = [1000:1000:10_000...]
+params = (; p=0.8, r=0.1, clust=3, d=3, order=1, q=Inf, ribbon=true)
+
+begin
+    sparse = Any[]
+    for f in F
+        m, s = one_sim(f.f, N, params, 10, :sparse)
+        push!(sparse, [m, s])
+        GC.gc()
+    end
+end;
+
+
+begin
+    plt_sparse = plot(0, 0, xlabel="n", la=0, label="Sparse regime")
+    for (f, x) in zip(F, eachrow(sparse))
+        plt_sparse = plot(plt_sparse, N, x[1][1], label=f.name, m=:o)
+    end
+    plt_sparse
+    # plot(plt_sparse, ylim=(1e-5, 1), yscale=:identity)
 end

@@ -1,39 +1,18 @@
 #Diagnosis
 using DrWatson
-@quickactivate projectdir()
+
+
 
 begin
     include(srcdir("rdpg.jl"))
     import Main.rdpg
-    using PersistenceDiagrams, Pipe, Plots, ProgressMeter, Random, Ripserer, Statistics, StatsBase
-    using Distributions, LinearAlgebra, UMAP
+    using Distributions, LinearAlgebra, Plots, ProgressMeter, Random, Statistics, StatsBase
+    using Pipe, Ripserer, UMAP
 end
 
 
 
 begin
-    function scale_embeddings(X)
-        return StatsBase.standardize(ZScoreTransform, X, dims=1)
-    end
-
-    function diagram(X; dim_max)
-        dgm = ripserer(X |> Alpha, dim_max=dim_max)
-        [replace(x -> death(x) == Inf ? PersistenceInterval(birth(x), threshold(d)) : x, d) for d in dgm]
-    end
-
-    # function bottleneck_distance(Dx, Dy; order=nothing, p=Inf)
-    #     order = isnothing(order) ? 0 : order
-    #     dx, dy = Dx[1+order], Dy[1+order]
-    #     m = max(0, min(length.((dx, dy))...) .- 2)
-    #     dx = dx[end-m:end]
-    #     dy = dy[end-m:end]
-    #     return norm(map((x, y) -> (x .- y) .|> abs |> maximum, dx, dy), p)
-    # end
-
-    function bottleneck_distance(Dx, Dy; order=nothing, p=Inf)
-        Bottleneck()(Dx, Dy)
-    end
-
     function subsample(X, a=1)
         sample(X |> rdpg.m2t, round(Int, size(X, 1)^a), replace=false)
     end
@@ -88,16 +67,16 @@ function sim_eps(eps; N, repeats=5, ribbon=true)
         Random.seed!(2022)
         tmp = [sim(n, 2, eps, 1)[1] for _ in 1:repeats]
         μ[i, :] = @pipe tmp |> rdpg.t2m |> mean(_, dims=1)
-        σ[i, :] = @pipe tmp |> rdpg.t2m |> mean( 0.25 .* _, dims=1)
+        σ[i, :] = @pipe tmp |> rdpg.t2m |> mean(0.25 .* _, dims=1)
     end
 
     plot(
-        0:1e-10, 0:1e-10, la=0, ma=0, 
-        label="ϵ=$eps", xlabel="n", ylabel="Bottleneck distance", 
+        0:1e-10, 0:1e-10, la=0, ma=0,
+        label="ϵ=$eps", xlabel="n", ylabel="Bottleneck distance",
         size=(400, 300)
     )
-    plot!(N, μ[:, 1], ribbon = σ[:, 1], m=:o, label="ϵ known")
-    plot!(N, μ[:, 2], ribbon = σ[:, 2], m=:o, label="ϵ unknown")
+    plot!(N, μ[:, 1], ribbon=σ[:, 1], m=:o, label="ϵ known")
+    plot!(N, μ[:, 2], ribbon=σ[:, 2], m=:o, label="ϵ unknown")
     savefig(plotsdir("eps-sims/e-$eps.pdf"))
 
     return results
